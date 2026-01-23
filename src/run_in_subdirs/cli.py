@@ -30,7 +30,7 @@ def get_footer(status_code: int, duration: float) -> list[str]:
     icon = "✅" if status_code == 0 else "❌"
     color = "green" if status_code == 0 else "red"
     return [
-        f"└─ {icon} Done in {duration:.2f}s •[bold {color}]Exit: {status_code}[/]",
+        f"└─ {icon} Done in {duration:.2f}s • [bold {color}]Exit: {status_code}[/]",
         "",
     ]
 
