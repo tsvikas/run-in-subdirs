@@ -14,8 +14,9 @@ def test_version(capsys: pytest.CaptureFixture[str]) -> None:
 
 
 def test_no_command_raises_error() -> None:
-    with pytest.raises(ValueError, match="Must provide a command to run"):
-        app([""])
+    with pytest.raises(SystemExit) as exc_info:
+        app([])
+    assert exc_info.value.code == 1
 
 
 @pytest.fixture
@@ -199,7 +200,7 @@ class TestEdgeCases:
         """Commands with shell features like pipes should work."""
         monkeypatch.chdir(workspace)
         with pytest.raises(SystemExit) as exc_info:
-            app(["echo hello | cat"])
+            app(["echo", "hello", "|", "cat"])
         assert exc_info.value.code == 0
 
         output = capfd.readouterr().out
