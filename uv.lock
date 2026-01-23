@@ -1337,7 +1337,7 @@ typing = [
 
 [package.metadata]
 requires-dist = [
-    { name = "colorama", specifier = ">=0.4" },
+    { name = "colorama", specifier = ">=0.4.6" },
     { name = "cyclopts", specifier = ">=4" },
 ]
 
