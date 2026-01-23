@@ -4,6 +4,7 @@ Run the same command in subdirectories.
 """
 
 import asyncio
+import shlex
 import subprocess
 import time
 from pathlib import Path
@@ -109,7 +110,7 @@ def run_in_subdirs(
     run_async
         Run in parallel
     """
-    command_str = " ".join(command)
+    command_str = shlex.join(command)
     if not command_str.strip():
         msg = "Must provide a command to run"
         raise ValueError(msg)
