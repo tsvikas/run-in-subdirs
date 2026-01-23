@@ -13,7 +13,7 @@ from typing import Annotated
 from cyclopts import App, Parameter
 from rich.console import Console
 
-console = Console(highlight=False)
+console = Console(highlight=False, soft_wrap=True)
 print = console.print  # noqa: A001
 
 app = App(name="run-in-subdirs")
