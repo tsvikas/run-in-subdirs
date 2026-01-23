@@ -10,19 +10,62 @@
 
 ## Overview
 
-run the same command for all subdirs.
+Run the same command across all subdirectories with clean, branch-style formatted output. Useful for managing multiple git repositories, running batch operations, or any task that needs to be repeated across sibling directories.
+
+## Features
+
+- **Branch-style output** - Clear visual hierarchy showing which directory each output belongs to
+- **Parallel execution** - Run commands concurrently with `--async` for faster batch operations
+- **Exit status tracking** - Shows exit code and duration for each directory
+- **stderr highlighting** - Errors are visually distinguished from stdout
+- **Shell completion** - Tab completion for bash, zsh, and fish
 
 ## Install
 
-Install this tool using pipx (or uv):
-
 ```bash
+# Using pipx
 pipx install git+https://github.com/tsvikas/run-in-subdirs.git
+
+# Using uv
+uv tool install git+https://github.com/tsvikas/run-in-subdirs.git
 ```
 
 ## Usage
 
-Use `run-in-subdirs --help` to learn more.
+```bash
+# Run a command in all subdirectories (sequential)
+run-in-subdirs git status
+
+# Run in parallel for faster execution
+run-in-subdirs --async git fetch
+
+# Commands with flags need to use --
+run-in-subdirs -- ls -la
+```
+
+### Example Output
+
+```
+┌─ 📂 project-a
+│  On branch main
+│  nothing to commit, working tree clean
+└─ ✅ Done in 0.05s • Exit: 0
+
+┌─ 📂 project-b
+│  On branch feature/new-thing
+│  Changes not staged for commit:
+│    modified:   src/app.py
+└─ ✅ Done in 0.04s • Exit: 0
+```
+
+### Options
+
+| Option                 | Description                                              |
+| ---------------------- | -------------------------------------------------------- |
+| `--async`              | Run commands in parallel (output buffered per directory) |
+| `--help`               | Show help message                                        |
+| `--version`            | Show version                                             |
+| `--install-completion` | Install shell completion                                 |
 
 ## Contributing
 
