@@ -11,7 +11,10 @@ from pathlib import Path
 from typing import Annotated
 
 from cyclopts import App, Parameter
-from rich import print  # noqa: A004
+from rich.console import Console
+
+console = Console(highlight=False)
+print = console.print  # noqa: A001
 
 app = App(name="run-in-subdirs")
 app.register_install_completion_command()
