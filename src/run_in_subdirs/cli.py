@@ -65,7 +65,6 @@ async def run_async_task(subdir: Path, command_str: str) -> None:
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    assert isinstance(process.returncode, int)  # noqa: S101
 
     stdout, stderr = await process.communicate()
     duration = time.perf_counter() - start_time
