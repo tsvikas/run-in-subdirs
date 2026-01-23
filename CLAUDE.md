@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CLI tool that runs the same command across all subdirectories of the current directory. Uses `cyclopts` for CLI parsing and `rich` for formatted output.
+CLI tool that runs the same command across all subdirectories of the current directory. Uses `cyclopts` for CLI parsing and `colorama` for colored output.
 
 ## Common Commands
 

@@ -10,11 +10,10 @@ import time
 from pathlib import Path
 from typing import Annotated
 
+from colorama import Back, Fore, Style, just_fix_windows_console
 from cyclopts import App, Parameter
-from rich.console import Console
 
-console = Console(highlight=False, soft_wrap=True)
-print = console.print  # noqa: A001
+just_fix_windows_console()
 
 app = App(name="run-in-subdirs")
 app.register_install_completion_command()
@@ -28,9 +27,10 @@ def get_header(subdir: Path) -> list[str]:
 def get_footer(status_code: int, duration: float) -> list[str]:
     """Create the footer for each command."""
     icon = "✅" if status_code == 0 else "❌"
-    color = "green" if status_code == 0 else "red"
+    color = Fore.GREEN if status_code == 0 else Fore.RED
+    exit_text = f"{Style.BRIGHT}{color}Exit: {status_code}{Style.RESET_ALL}"
     return [
-        f"└─ {icon} Done in {duration:.2f}s • [bold {color}]Exit: {status_code}[/]",
+        f"└─ {icon} Done in {duration:.2f}s • {exit_text}",
         "",
     ]
 
@@ -39,7 +39,7 @@ def format_line(line: str, *, is_err: bool = False) -> str:
     """Prepends the branch line."""
     prefix = "│  "
     if is_err:
-        prefix = f"[on red]{prefix}[/]"
+        prefix = f"{Back.RED}{prefix}{Style.RESET_ALL}"
     return f"{prefix}{line.rstrip()}"
 
 
