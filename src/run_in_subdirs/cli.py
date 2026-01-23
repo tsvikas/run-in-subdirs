@@ -67,6 +67,7 @@ async def run_async_task(subdir: Path, command_str: str) -> None:
     )
 
     stdout, stderr = await process.communicate()
+    assert isinstance(process.returncode, int)  # noqa: S101
     duration = time.perf_counter() - start_time
 
     output_lines = get_header(subdir)
