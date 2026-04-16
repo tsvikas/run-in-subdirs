@@ -1,9 +1,11 @@
 from pathlib import Path
 
 import pytest
+from colorama import Back, Style
 
 from run_in_subdirs import __version__
-from run_in_subdirs.cli import app
+from run_in_subdirs.cli import app, format_line
+from run_in_subdirs.cli import run_in_subdirs as run_in_subdirs_fn
 
 
 def test_version(capsys: pytest.CaptureFixture[str]) -> None:
@@ -17,6 +19,16 @@ def test_no_command_raises_error() -> None:
     with pytest.raises(SystemExit) as exc_info:
         app([])
     assert exc_info.value.code == 1
+
+
+class TestFormatLine:
+    def test_stderr_line_has_red_background(self) -> None:
+        """Stderr lines should be formatted with a red background prefix."""
+        result = format_line("error message", is_err=True)
+        assert "│  " in result
+        assert Back.RED in result
+        assert "error message" in result
+        assert Style.RESET_ALL in result
 
 
 @pytest.fixture
@@ -163,6 +175,46 @@ class TestRunAsync:
         assert str(workspace / "beta") in output
         assert str(workspace / "gamma") in output
 
+    def test_async_stderr_only_is_captured(
+        self,
+        workspace: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capfd: pytest.CaptureFixture[str],
+    ) -> None:
+        """Async mode should capture stderr even when there is no stdout."""
+        monkeypatch.chdir(workspace)
+        with pytest.raises(SystemExit) as exc_info:
+            app(["--async", "ls", "nonexistent_unique_file"])
+        assert exc_info.value.code == 0
+
+        output = capfd.readouterr().out
+        # stderr from ls should be captured and displayed in the output
+        assert "nonexistent_unique_file" in output
+
+    def test_async_stdout_and_stderr_both_captured(
+        self,
+        workspace: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capfd: pytest.CaptureFixture[str],
+    ) -> None:
+        """Async mode should capture and display both stdout and stderr."""
+        monkeypatch.chdir(workspace)
+        with pytest.raises(SystemExit) as exc_info:
+            app(
+                [
+                    "--async",
+                    "--",
+                    "bash",
+                    "-c",
+                    "echo stdout_msg && echo stderr_msg >&2",
+                ]
+            )
+        assert exc_info.value.code == 0
+
+        output = capfd.readouterr().out
+        assert "stdout_msg" in output
+        assert "stderr_msg" in output
+
 
 class TestEdgeCases:
     def test_no_subdirs(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -205,3 +257,13 @@ class TestEdgeCases:
 
         output = capfd.readouterr().out
         assert output.count("hello") == 3
+
+    def test_empty_command_raises_value_error(
+        self,
+        workspace: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Calling run_in_subdirs with an empty command list raises ValueError."""
+        monkeypatch.chdir(workspace)
+        with pytest.raises(ValueError, match="Must provide a command to run"):
+            run_in_subdirs_fn([])
