@@ -247,7 +247,6 @@ class TestSummary:
         output = capfd.readouterr().out
         summary = output.split("Summary:")[1]
         assert "❌" in summary
-        assert "exit " in summary
 
     def test_no_summary_when_no_subdirs(
         self,

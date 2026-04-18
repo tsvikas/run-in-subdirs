@@ -111,14 +111,12 @@ def print_summary(results: list[tuple[Path, int, float]]) -> None:
     total = len(results)
     header_color = Fore.GREEN if succeeded == total else Fore.RED
     print(
-        f"{Style.BRIGHT}{header_color}── Summary: "
+        f"{Style.BRIGHT}{header_color}Summary: "
         f"{succeeded}/{total} succeeded{Style.RESET_ALL}"
     )
-    for subdir, code, duration in results:
+    for subdir, code, _duration in results:
         icon = "✅" if code == 0 else "❌"
-        color = Fore.GREEN if code == 0 else Fore.RED
-        suffix = "" if code == 0 else f" {color}exit {code}{Style.RESET_ALL}"
-        print(f"  {icon} {subdir} ({duration:.2f}s){suffix}")
+        print(f"{icon} {subdir}")
 
 
 @app.default()
