@@ -59,6 +59,20 @@ def run_sync(subdirs: list[Path], command_str: str) -> None:
             print(foot)
 
 
+async def read_stream(
+    stream: asyncio.StreamReader,
+    captured: list[tuple[float, bool, str]],
+    *,
+    is_err: bool,
+) -> None:
+    """Read lines from a stream, tagging each with an arrival timestamp."""
+    while True:
+        raw = await stream.readline()
+        if not raw:
+            break
+        captured.append((time.perf_counter(), is_err, raw.decode().rstrip("\n")))
+
+
 async def run_async_task(subdir: Path, command_str: str) -> None:
     """Run command asynchronously and applies branch formatting to buffered output."""
     start_time = time.perf_counter()
@@ -69,23 +83,23 @@ async def run_async_task(subdir: Path, command_str: str) -> None:
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
+    assert process.stdout is not None  # noqa: S101
+    assert process.stderr is not None  # noqa: S101
 
-    stdout, stderr = await process.communicate()
+    # Interleave stdout/stderr in arrival order; order is approximate (kernel
+    # buffering and asyncio scheduling), but preserves the is_err distinction.
+    captured: list[tuple[float, bool, str]] = []
+    await asyncio.gather(
+        read_stream(process.stdout, captured, is_err=False),
+        read_stream(process.stderr, captured, is_err=True),
+    )
+    await process.wait()
     assert isinstance(process.returncode, int)  # noqa: S101
     duration = time.perf_counter() - start_time
 
     output_lines = get_header(subdir)
-
-    # Process stdout
-    if stdout:
-        for line in stdout.decode().splitlines():
-            output_lines.append(format_line(line, is_err=False))
-
-    # Process stderr with a different vertical marker
-    if stderr:
-        for line in stderr.decode().splitlines():
-            output_lines.append(format_line(line, is_err=True))
-
+    for _, is_err, line in sorted(captured, key=lambda item: item[0]):
+        output_lines.append(format_line(line, is_err=is_err))
     output_lines.extend(get_footer(process.returncode, duration))
 
     print("\n".join(output_lines))
