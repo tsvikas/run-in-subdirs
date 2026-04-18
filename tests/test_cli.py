@@ -216,6 +216,53 @@ class TestRunAsync:
         assert "stderr_msg" in output
 
 
+class TestSummary:
+    def test_summary_header_and_all_dirs_listed(
+        self,
+        workspace: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capfd: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.chdir(workspace)
+        with pytest.raises(SystemExit):
+            app(["echo", "hello"])
+
+        output = capfd.readouterr().out
+        assert "Summary: 3/3 succeeded" in output
+        summary = output.split("Summary:")[1]
+        assert "alpha" in summary
+        assert "beta" in summary
+        assert "gamma" in summary
+
+    def test_summary_marks_failed_dirs(
+        self,
+        workspace: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capfd: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.chdir(workspace)
+        with pytest.raises(SystemExit):
+            app(["ls", "nonexistent_file"])
+
+        output = capfd.readouterr().out
+        summary = output.split("Summary:")[1]
+        assert "❌" in summary
+        assert "exit " in summary
+
+    def test_no_summary_when_no_subdirs(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capfd: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        with pytest.raises(SystemExit):
+            app(["echo", "hi"])
+
+        output = capfd.readouterr().out
+        assert "Summary:" not in output
+
+
 class TestEdgeCases:
     def test_no_subdirs(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Running in a directory with no subdirectories should not fail."""
