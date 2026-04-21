@@ -43,8 +43,9 @@ def format_line(line: str, *, is_err: bool = False) -> str:
     return f"{prefix}{line.rstrip()}"
 
 
-def run_sync(subdirs: list[Path], command_str: str) -> None:
+def run_sync(subdirs: list[Path], command_str: str) -> list[tuple[Path, int, float]]:
     """Run commands sequentially with raw live output."""
+    results: list[tuple[Path, int, float]] = []
     for subdir in subdirs:
         for head in get_header(subdir):
             print(head)
@@ -57,6 +58,8 @@ def run_sync(subdirs: list[Path], command_str: str) -> None:
         duration = time.perf_counter() - start_time
         for foot in get_footer(result.returncode, duration):
             print(foot)
+        results.append((subdir, result.returncode, duration))
+    return results
 
 
 async def read_stream(
@@ -73,7 +76,7 @@ async def read_stream(
         captured.append((time.perf_counter(), is_err, raw.decode().rstrip("\n")))
 
 
-async def run_async_task(subdir: Path, command_str: str) -> None:
+async def run_async_task(subdir: Path, command_str: str) -> tuple[Path, int, float]:
     """Run command asynchronously and applies branch formatting to buffered output."""
     start_time = time.perf_counter()
 
@@ -103,12 +106,31 @@ async def run_async_task(subdir: Path, command_str: str) -> None:
     output_lines.extend(get_footer(process.returncode, duration))
 
     print("\n".join(output_lines))
+    return subdir, process.returncode, duration
 
 
-async def run_async_handler(subdirs: list[Path], command_str: str) -> None:
+async def run_async_handler(
+    subdirs: list[Path], command_str: str
+) -> list[tuple[Path, int, float]]:
     """Run commands async."""
     tasks = [run_async_task(d, command_str) for d in subdirs]
-    await asyncio.gather(*tasks)
+    return await asyncio.gather(*tasks)
+
+
+def print_summary(results: list[tuple[Path, int, float]]) -> None:
+    """Print a compact one-line-per-dir summary of all runs."""
+    if not results:
+        return
+    succeeded = sum(1 for _, code, _ in results if code == 0)
+    total = len(results)
+    header_color = Fore.GREEN if succeeded == total else Fore.RED
+    print(
+        f"{Style.BRIGHT}{header_color}Summary: "
+        f"{succeeded}/{total} succeeded{Style.RESET_ALL}"
+    )
+    for subdir, code, _duration in results:
+        icon = "✅" if code == 0 else "❌"
+        print(f"{icon} {subdir}")
 
 
 @app.default()
@@ -135,8 +157,10 @@ def run_in_subdirs(
     subdirs = sorted([d for d in Path().iterdir() if d.is_dir()])
 
     if run_async:
-        asyncio.run(run_async_handler(subdirs, command_str))
+        results = asyncio.run(run_async_handler(subdirs, command_str))
     else:
-        run_sync(subdirs, command_str)
+        results = run_sync(subdirs, command_str)
+
+    print_summary(results)
 
     return 0
