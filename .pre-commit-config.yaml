@@ -153,7 +153,7 @@ repos:
       - id: blacken-docs
         additional_dependencies: [black==26.3.1]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+    rev: v0.15.13
     hooks:
       - id: ruff-check
         alias: ruff-isort
@@ -183,7 +183,7 @@ repos:
 
   # pyproject.toml
   - repo: https://github.com/henryiii/validate-pyproject-schema-store
-    rev: 2026.05.13
+    rev: 2026.05.15
     hooks:
       - id: validate-pyproject
 
@@ -206,7 +206,7 @@ repos:
     hooks:
       - id: actionlint
   - repo: https://github.com/woodruffw/zizmor-pre-commit
-    rev: v1.24.1
+    rev: v1.25.0
     hooks:
       - id: zizmor
 
