@@ -200,15 +200,13 @@ class TestRunAsync:
         """Async mode should capture and display both stdout and stderr."""
         monkeypatch.chdir(workspace)
         with pytest.raises(SystemExit) as exc_info:
-            app(
-                [
-                    "--async",
-                    "--",
-                    "bash",
-                    "-c",
-                    "echo stdout_msg && echo stderr_msg >&2",
-                ]
-            )
+            app([
+                "--async",
+                "--",
+                "bash",
+                "-c",
+                "echo stdout_msg && echo stderr_msg >&2",
+            ])
         assert exc_info.value.code == 0
 
         output = capfd.readouterr().out
