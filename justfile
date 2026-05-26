@@ -46,10 +46,8 @@ deps-update: && deps-list-outdated
 
 # Audit dependencies
 deps-audit:
-  uv run --exact --all-extras --all-groups --with pip-audit -- \
-    pip-audit \
-    --skip-editable
-  uv run --exact true
+  uv audit --locked
+
 
 
 ### code quality ###
@@ -74,7 +72,6 @@ quick-tools:
 format:
   uv run ruff check --select I001 --fix
   uv run ruff format
-  uv run prek run --all-files blacken-docs
   uv run prek run --all-files mdformat
 
 # Run linters

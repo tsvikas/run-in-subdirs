@@ -58,7 +58,7 @@ Ready to get started? Follow the development setup below.
 You can run specific tools directly:
 
 ```bash
-
+uv run ruff format
 uv run ruff check
 uv run mypy
 uv run pytest
