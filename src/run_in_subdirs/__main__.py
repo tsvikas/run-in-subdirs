@@ -3,6 +3,6 @@
 use `python -m run_in_subdirs` to run the cli
 """
 
-from .cli import app
+from .cli import main
 
-app()
+main()

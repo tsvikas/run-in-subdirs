@@ -6,9 +6,12 @@ Run the same command in subdirectories.
 import asyncio
 import shlex
 import subprocess
+import sys
 import time
+import traceback
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, NoReturn
 
 from colorama import Back, Fore, Style, just_fix_windows_console
 from cyclopts import App, Parameter
@@ -133,6 +136,10 @@ def print_summary(results: list[tuple[Path, int, float]]) -> None:
         print(f"{icon} {subdir}")
 
 
+# --- Commands -------------------------------------------------------------------------
+# This is the part to replace. `@app.default()` runs when no subcommand is
+# given, so switch these to `@app.command()` once there is more than one, and
+# keep the exit codes each returns listed in its docstring.
 @app.default()
 def run_in_subdirs(
     command: list[str],
@@ -142,12 +149,18 @@ def run_in_subdirs(
 ) -> int:
     """Run the same command in subdirectories with clean branch-style formatting.
 
-    Parameters
-    ----------
-    command
-        The command to run
-    run_async
-        Run in parallel
+    Args:
+        command: The command to run
+        run_async: Run in parallel
+
+    Returns:
+        The process exit code.
+
+    Exit Codes:
+        0: Success, even if the command failed in some subdirectories.
+        2: Invalid usage.
+        64-78: Reserved, an internal failure.
+        129-159: Reserved, terminated by signal N, as 128 + N.
     """
     command_str = shlex.join(command)
     if not command_str.strip():
@@ -164,3 +177,49 @@ def run_in_subdirs(
     print_summary(results)
 
     return 0
+
+
+# --- Entry point ----------------------------------------------------------------------
+# Maps the commands above onto exit codes, and is what `[project.scripts]` and
+# `__main__` both call.
+
+# Cyclopts itself exits 2 on invalid usage. These are sysexits(3) codes.
+# `os.EX_*` holds the same values but only exists on Unix, so they are inlined
+# to keep the CLI importable on Windows.
+EX_NOINPUT = 66
+EX_UNAVAILABLE = 69
+EX_SOFTWARE = 70
+EX_NOPERM = 77
+
+
+def _fail(exc: Exception, code: int) -> NoReturn:
+    """Report `exc` on stderr and exit with `code`."""
+    print(f"error: {exc}", file=sys.stderr)
+    sys.exit(code)
+
+
+def main(tokens: Sequence[str] | None = None) -> None:
+    """Run the CLI, reporting failures and mapping them onto exit codes.
+
+    Args:
+        tokens: The command line to parse. Defaults to `sys.argv[1:]`.
+    """
+    try:
+        # `tokens` is a parameter so that tests can pass a command line here.
+        # Under pytest, a bare `app()` warns, since it would parse pytest's own
+        # argv, and a test that does so passes while testing nothing.
+        app(tokens)
+    # Nothing reports the errors below, so without `_fail` the CLI would exit on
+    # a bare code and no output. Match on the exception rather than on
+    # `type(exc)`, so that subclasses such as ConnectionRefusedError still land
+    # on the right code. Specific OSError subclasses must precede any bare
+    # `except OSError`, which would otherwise swallow them.
+    except FileNotFoundError as exc:
+        _fail(exc, EX_NOINPUT)
+    except PermissionError as exc:
+        _fail(exc, EX_NOPERM)
+    except ConnectionError as exc:
+        _fail(exc, EX_UNAVAILABLE)
+    except Exception:  # noqa: BLE001
+        traceback.print_exc()
+        sys.exit(EX_SOFTWARE)

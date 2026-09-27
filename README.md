@@ -23,11 +23,11 @@ Run the same command across all subdirectories with clean, branch-style formatte
 ## Install
 
 ```bash
-# Using pipx
-pipx install git+https://github.com/tsvikas/run-in-subdirs.git
-
 # Using uv
 uv tool install git+https://github.com/tsvikas/run-in-subdirs.git
+
+# Using pipx
+pipx install git+https://github.com/tsvikas/run-in-subdirs.git
 ```
 
 ## Usage
@@ -70,7 +70,7 @@ run-in-subdirs -- ls -la
 ## Contributing
 
 Interested in contributing?
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guideline.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 [github-discussions-badge]: https://img.shields.io/static/v1?label=Discussions&message=Ask&color=blue&logo=github
 [github-discussions-link]: https://github.com/tsvikas/run-in-subdirs/discussions
