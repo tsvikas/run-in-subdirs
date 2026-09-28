@@ -39,6 +39,9 @@ run-in-subdirs git status
 # Run in parallel for faster execution
 run-in-subdirs --async git fetch
 
+# Run only in directories exactly 2 levels deep (e.g. org/repo)
+run-in-subdirs --depth 2 git status
+
 # Commands with flags need to use --
 run-in-subdirs -- ls -la
 ```
@@ -63,6 +66,7 @@ run-in-subdirs -- ls -la
 | Option                 | Description                                              |
 | ---------------------- | -------------------------------------------------------- |
 | `--async`              | Run commands in parallel (output buffered per directory) |
+| `--depth N`            | Run only in directories exactly N levels deep (default 1) |
 | `--help`               | Show help message                                        |
 | `--version`            | Show version                                             |
 | `--install-completion` | Install shell completion                                 |

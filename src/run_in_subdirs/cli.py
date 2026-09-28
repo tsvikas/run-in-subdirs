@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Annotated, NoReturn
 
 from colorama import Back, Fore, Style, just_fix_windows_console
-from cyclopts import App, Parameter
+from cyclopts import App, Parameter, validators
 
 just_fix_windows_console()
 
@@ -44,6 +44,14 @@ def format_line(line: str, *, is_err: bool = False) -> str:
     if is_err:
         prefix = f"{Back.RED}{prefix}{Style.RESET_ALL}"
     return f"{prefix}{line.rstrip()}"
+
+
+def find_subdirs(root: Path, depth: int) -> list[Path]:
+    """Find the directories exactly `depth` levels below `root`, sorted."""
+    level = [root]
+    for _ in range(depth):
+        level = [child for d in level for child in d.iterdir() if child.is_dir()]
+    return sorted(level)
 
 
 def run_sync(subdirs: list[Path], command_str: str) -> list[tuple[Path, int, float]]:
@@ -146,12 +154,14 @@ def run_in_subdirs(
     /,
     *,
     run_async: Annotated[bool, Parameter("--async")] = False,
+    depth: Annotated[int, Parameter(validator=validators.Number(gte=1))] = 1,
 ) -> int:
     """Run the same command in subdirectories with clean branch-style formatting.
 
     Args:
         command: The command to run
         run_async: Run in parallel
+        depth: Run only in directories exactly this many levels deep
 
     Returns:
         The process exit code.
@@ -167,7 +177,7 @@ def run_in_subdirs(
         msg = "Must provide a command to run"
         raise ValueError(msg)
 
-    subdirs = sorted([d for d in Path().iterdir() if d.is_dir()])
+    subdirs = find_subdirs(Path(), depth)
 
     if run_async:
         results = asyncio.run(run_async_handler(subdirs, command_str))

@@ -134,6 +134,40 @@ class TestRunSync:
         assert "Exit: " in output
 
 
+class TestDepth:
+    def test_depth_2_runs_only_in_nested_dirs(
+        self,
+        workspace: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capfd: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.chdir(workspace)
+        with pytest.raises(SystemExit) as exc_info:
+            app(["--depth", "2", "pwd"])
+        assert exc_info.value.code == 0
+
+        output = capfd.readouterr().out
+        assert str(workspace / "gamma" / "nested") in output
+        assert "Summary: 1/1 succeeded" in output
+
+    def test_depth_beyond_tree_runs_nothing(
+        self,
+        workspace: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capfd: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.chdir(workspace)
+        with pytest.raises(SystemExit) as exc_info:
+            app(["--depth", "3", "pwd"])
+        assert exc_info.value.code == 0
+        assert capfd.readouterr().out == ""
+
+    def test_depth_zero_is_invalid(self) -> None:
+        with pytest.raises(SystemExit) as exc_info:
+            app(["--depth", "0", "pwd"])
+        assert exc_info.value.code == 2
+
+
 class TestRunAsync:
     def test_async_ls_lists_files_in_subdirs(
         self,
