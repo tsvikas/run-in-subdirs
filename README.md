@@ -63,13 +63,13 @@ run-in-subdirs -- ls -la
 
 ### Options
 
-| Option                 | Description                                              |
-| ---------------------- | -------------------------------------------------------- |
-| `--async`              | Run commands in parallel (output buffered per directory) |
+| Option                 | Description                                               |
+| ---------------------- | --------------------------------------------------------- |
+| `--async`              | Run commands in parallel (output buffered per directory)  |
 | `--depth N`            | Run only in directories exactly N levels deep (default 1) |
-| `--help`               | Show help message                                        |
-| `--version`            | Show version                                             |
-| `--install-completion` | Install shell completion                                 |
+| `--help`               | Show help message                                         |
+| `--version`            | Show version                                              |
+| `--install-completion` | Install shell completion                                  |
 
 ## Contributing
 
