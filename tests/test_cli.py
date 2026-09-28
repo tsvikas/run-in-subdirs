@@ -168,6 +168,61 @@ class TestDepth:
         assert exc_info.value.code == 2
 
 
+class TestHidden:
+    @pytest.fixture
+    def hidden_workspace(self, workspace: Path) -> Path:
+        """Extend `workspace` with hidden directories at depth 1 and 2."""
+        (workspace / ".hidden").mkdir()
+        (workspace / "alpha" / ".git").mkdir()
+        return workspace
+
+    def test_default_skips_hidden_dirs(
+        self,
+        hidden_workspace: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capfd: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.chdir(hidden_workspace)
+        with pytest.raises(SystemExit) as exc_info:
+            app(["pwd"])
+        assert exc_info.value.code == 0
+
+        output = capfd.readouterr().out
+        assert ".hidden" not in output
+        assert "Summary: 3/3 succeeded" in output
+
+    def test_depth_2_skips_nested_hidden_dirs(
+        self,
+        hidden_workspace: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capfd: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.chdir(hidden_workspace)
+        with pytest.raises(SystemExit) as exc_info:
+            app(["--depth", "2", "pwd"])
+        assert exc_info.value.code == 0
+
+        output = capfd.readouterr().out
+        assert ".git" not in output
+        assert "Summary: 1/1 succeeded" in output
+
+    def test_hidden_includes_nested_hidden_dirs(
+        self,
+        hidden_workspace: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        capfd: pytest.CaptureFixture[str],
+    ) -> None:
+        monkeypatch.chdir(hidden_workspace)
+        with pytest.raises(SystemExit) as exc_info:
+            app(["--hidden", "--depth", "2", "pwd"])
+        assert exc_info.value.code == 0
+
+        output = capfd.readouterr().out
+        assert str(hidden_workspace / "alpha" / ".git") in output
+        assert str(hidden_workspace / "gamma" / "nested") in output
+        assert "Summary: 2/2 succeeded" in output
+
+
 class TestRunAsync:
     def test_async_ls_lists_files_in_subdirs(
         self,
