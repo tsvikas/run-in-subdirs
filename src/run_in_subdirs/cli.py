@@ -46,11 +46,20 @@ def format_line(line: str, *, is_err: bool = False) -> str:
     return f"{prefix}{line.rstrip()}"
 
 
-def find_subdirs(root: Path, depth: int) -> list[Path]:
-    """Find the directories exactly `depth` levels below `root`, sorted."""
+def find_subdirs(root: Path, depth: int, *, hidden: bool = False) -> list[Path]:
+    """Find the directories exactly `depth` levels below `root`, sorted.
+
+    Hidden directories (names starting with `.`) are skipped at every level,
+    unless `hidden` is set.
+    """
     level = [root]
     for _ in range(depth):
-        level = [child for d in level for child in d.iterdir() if child.is_dir()]
+        level = [
+            child
+            for d in level
+            for child in d.iterdir()
+            if child.is_dir() and (hidden or not child.name.startswith("."))
+        ]
     return sorted(level)
 
 
@@ -155,6 +164,7 @@ def run_in_subdirs(
     *,
     run_async: Annotated[bool, Parameter("--async")] = False,
     depth: Annotated[int, Parameter(validator=validators.Number(gte=1))] = 1,
+    hidden: bool = False,
 ) -> int:
     """Run the same command in subdirectories with clean branch-style formatting.
 
@@ -162,6 +172,7 @@ def run_in_subdirs(
         command: The command to run
         run_async: Run in parallel
         depth: Run only in directories exactly this many levels deep
+        hidden: Include hidden directories (names starting with `.`)
 
     Returns:
         The process exit code.
@@ -177,7 +188,7 @@ def run_in_subdirs(
         msg = "Must provide a command to run"
         raise ValueError(msg)
 
-    subdirs = find_subdirs(Path(), depth)
+    subdirs = find_subdirs(Path(), depth, hidden=hidden)
 
     if run_async:
         results = asyncio.run(run_async_handler(subdirs, command_str))
