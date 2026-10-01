@@ -49,7 +49,7 @@ uv run run-in-subdirs --async <command>   # parallel execution
 
 ## Code Style
 
-- Python 3.10+ with strict typing (mypy strict mode)
+- Python 3.11+ with strict typing (mypy strict mode)
 - Ruff for linting with nearly all rules enabled
 - Google-style docstrings
 - Tests in `tests/` use pytest; doctests enabled in source files
