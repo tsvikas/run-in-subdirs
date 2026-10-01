@@ -22,12 +22,10 @@ Run the same command across all subdirectories with clean, branch-style formatte
 
 ## Install
 
-```bash
-# Using uv
-uv tool install git+https://github.com/tsvikas/run-in-subdirs.git
+Install this tool using uv (or pipx):
 
-# Using pipx
-pipx install git+https://github.com/tsvikas/run-in-subdirs.git
+```bash
+uv tool install git+https://github.com/tsvikas/run-in-subdirs.git
 ```
 
 ## Usage
